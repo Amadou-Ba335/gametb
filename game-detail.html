@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Abyss II — Game TB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b14;
+  --surface: #0d1220;
+  --surface2: #111827;
+  --surface3: #161e30;
+  --accent: #00f5c8;
+  --accent2: #ff3d71;
+  --accent3: #7c3aed;
+  --gold: #fbbf24;
+  --text: #e8eaf0;
+  --muted: #6b7280;
+  --border: rgba(255,255,255,0.06);
+  --glow: 0 0 40px rgba(0,245,200,0.12);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; overflow-x: hidden; cursor: none; }
+
+/* CURSOR */
+.cursor { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width .2s, height .2s; mix-blend-mode: screen; }
+.cursor-ring { width: 32px; height: 32px; border: 1px solid rgba(0,245,200,0.35); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: transform .15s ease-out, width .3s, height .3s; }
+::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--accent); }
+
+/* NOISE */
+body::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; opacity: .35; }
+
+/* NAV */
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 0 3rem; height: 68px; display: flex; align-items: center; justify-content: space-between; background: rgba(8,11,20,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 3px; color: var(--accent); text-decoration: none; text-shadow: 0 0 25px rgba(0,245,200,0.4); }
+.logo span { color: var(--accent2); }
+.nav-back { display: flex; align-items: center; gap: .6rem; color: var(--muted); text-decoration: none; font-size: .78rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; transition: color .2s; }
+.nav-back:hover { color: var(--accent); }
+.nav-back::before { content: '←'; font-size: 1rem; }
+.nav-right { display: flex; gap: 1rem; align-items: center; }
+.btn-sm { padding: .45rem 1.2rem; border-radius: 2px; font-family: 'Syne', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer; transition: all .2s; text-decoration: none; border: none; }
+.btn-outline-sm { border: 1px solid var(--border); color: var(--muted); background: transparent; }
+.btn-outline-sm:hover { border-color: rgba(0,245,200,.3); color: var(--accent); }
+.btn-solid-sm { background: var(--accent); color: var(--bg); }
+.btn-solid-sm:hover { box-shadow: 0 0 20px rgba(0,245,200,.35); }
+
+/* HERO BANNER */
+.game-hero { margin-top: 68px; position: relative; height: 480px; overflow: hidden; }
+.hero-art {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #0b0120 0%, #0a1535 40%, #050e20 100%);
+  display: flex; align-items: center; justify-content: center; position: relative;
+}
+.hero-art-layer {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(124,58,237,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0,245,200,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 30% 30% at 80% 20%, rgba(255,61,113,0.07) 0%, transparent 70%);
+}
+.hero-grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px); background-size: 50px 50px; mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%); }
+/* Animated rings */
+.ring { position: absolute; border-radius: 50%; border: 1px solid; animation: spin linear infinite; }
+.ring1 { width: 320px; height: 320px; border-color: rgba(0,245,200,.12); animation-duration: 18s; }
+.ring2 { width: 220px; height: 220px; border-color: rgba(124,58,237,.2); animation-duration: 11s; animation-direction: reverse; }
+.ring3 { width: 420px; height: 420px; border-color: rgba(255,61,113,.07); animation-duration: 25s; }
+.core { width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(0,245,200,.25) 0%, rgba(124,58,237,.3) 50%, transparent 75%); position: relative; z-index: 2; animation: pulse2 3s ease-in-out infinite; box-shadow: 0 0 60px rgba(0,245,200,.15); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse2 { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);} }
+.hero-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 200px; background: linear-gradient(transparent, var(--bg)); }
+.hero-title-overlay { position: absolute; bottom: 3rem; left: 5rem; z-index: 3; }
+.hero-breadcrumb { display: flex; gap: .5rem; align-items: center; font-size: .7rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; margin-bottom: .8rem; }
+.hero-breadcrumb span { color: var(--accent); }
+.hero-game-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 6vw, 5.5rem); letter-spacing: 3px; line-height: .95; text-shadow: 0 4px 40px rgba(0,0,0,.8); }
+.hero-game-title em { color: var(--accent); font-style: normal; }
+.hero-badges { display: flex; gap: .6rem; margin-top: 1rem; flex-wrap: wrap; }
+.badge { padding: .28rem .75rem; border-radius: 2px; font-size: .62rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+.badge-genre { background: rgba(0,245,200,.1); color: var(--accent); border: 1px solid rgba(0,245,200,.25); }
+.badge-platform { background: rgba(255,255,255,.06); color: var(--text); border: 1px solid rgba(255,255,255,.1); }
+.badge-age { background: rgba(255,61,113,.1); color: var(--accent2); border: 1px solid rgba(255,61,113,.2); }
+.badge-new { background: rgba(124,58,237,.15); color: #a78bfa; border: 1px solid rgba(124,58,237,.3); }
+
+/* LAYOUT */
+.page-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2.5rem; padding: 3rem 5rem; max-width: 1400px; margin: 0 auto; position: relative; z-index: 2; }
+
+/* LEFT COLUMN */
+/* Tabs */
+.tabs { display: flex; gap: .4rem; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.tab { padding: .7rem 1.4rem; font-family: 'Syne', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; background: transparent; border: none; color: var(--muted); transition: color .2s; position: relative; }
+.tab::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent); transform: scaleX(0); transition: transform .3s; }
+.tab.active { color: var(--accent); }
+.tab.active::after { transform: scaleX(1); }
+.tab:hover { color: var(--text); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Description */
+.game-desc { font-size: .95rem; color: #9ca3af; line-height: 1.85; margin-bottom: 2rem; }
+.game-desc strong { color: var(--text); }
+
+/* Screenshots */
+.screenshots { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: 2.5rem; }
+.screenshot {
+  border-radius: 4px; overflow: hidden; height: 120px; cursor: pointer;
+  border: 1px solid var(--border); transition: all .3s; position: relative;
+}
+.screenshot:hover { border-color: rgba(0,245,200,.3); transform: scale(1.02); }
+.ss-art { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+.ss1 { background: linear-gradient(135deg, #0d1a3a, #1a0533); }
+.ss2 { background: linear-gradient(135deg, #0a1a14, #140a1a); }
+.ss3 { background: linear-gradient(135deg, #1a0a0a, #0a0a1a); }
+.ss4 { background: linear-gradient(135deg, #14140a, #0a1414); }
+.ss5 { background: linear-gradient(135deg, #0a0a14, #1a0a14); }
+.ss6 { background: linear-gradient(135deg, #0a1a0a, #1a1a0a); }
+
+/* Specs */
+.specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.spec-item { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1.2rem; }
+.spec-label { font-size: .65rem; color: var(--muted); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: .4rem; }
+.spec-value { font-family: 'Space Mono', monospace; font-size: .85rem; color: var(--text); }
+
+/* REVIEWS */
+.reviews-header { display: flex; gap: 3rem; align-items: flex-start; margin-bottom: 2.5rem; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+.rating-big { text-align: center; }
+.rating-num { font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: var(--accent); line-height: 1; }
+.rating-stars { display: flex; gap: 3px; justify-content: center; margin: .4rem 0; }
+.star { color: var(--gold); font-size: 1rem; }
+.star.half { opacity: .4; }
+.rating-count { font-size: .75rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+.rating-bars { flex: 1; display: flex; flex-direction: column; gap: .6rem; }
+.bar-row { display: flex; align-items: center; gap .8rem; gap: .8rem; }
+.bar-label { font-size: .72rem; color: var(--muted); font-family: 'Space Mono', monospace; width: 12px; text-align: right; }
+.bar-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), rgba(0,245,200,.5)); border-radius: 3px; transition: width 1s ease; }
+.bar-pct { font-size: .68rem; color: var(--muted); font-family: 'Space Mono', monospace; width: 28px; }
+
+/* Write review */
+.write-review { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1.8rem; margin-bottom: 2rem; }
+.write-review h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 1.5px; margin-bottom: 1.2rem; }
+.star-picker { display: flex; gap: .3rem; margin-bottom: 1.2rem; }
+.star-pick { font-size: 1.6rem; cursor: pointer; color: var(--muted); transition: color .15s, transform .15s; }
+.star-pick:hover, .star-pick.selected { color: var(--gold); transform: scale(1.1); }
+.review-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: 'Syne', sans-serif; font-size: .88rem; padding: 1rem; resize: vertical; min-height: 100px; outline: none; transition: border-color .3s; }
+.review-textarea:focus { border-color: rgba(0,245,200,.35); }
+.review-textarea::placeholder { color: var(--muted); }
+.review-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+.char-count { font-size: .7rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+.btn-review { background: var(--accent); color: var(--bg); border: none; padding: .65rem 1.8rem; border-radius: 2px; font-family: 'Syne', sans-serif; font-size: .78rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all .2s; }
+.btn-review:hover { box-shadow: 0 0 20px rgba(0,245,200,.35); }
+
+/* Review cards */
+.review-list { display: flex; flex-direction: column; gap: 1.2rem; }
+.review-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem; transition: border-color .3s; }
+.review-card:hover { border-color: rgba(255,255,255,.1); }
+.review-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .8rem; }
+.reviewer { display: flex; align-items: center; gap: .8rem; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .85rem; font-weight: 700; border: 1px solid var(--border); flex-shrink: 0; }
+.av1 { background: rgba(0,245,200,.1); color: var(--accent); }
+.av2 { background: rgba(255,61,113,.1); color: var(--accent2); }
+.av3 { background: rgba(124,58,237,.1); color: #a78bfa; }
+.reviewer-name { font-size: .88rem; font-weight: 700; }
+.reviewer-date { font-size: .7rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+.review-stars { display: flex; gap: 2px; }
+.review-stars .star { font-size: .75rem; }
+.review-text { font-size: .85rem; color: #9ca3af; line-height: 1.65; }
+.review-useful { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.useful-label { font-size: .7rem; color: var(--muted); }
+.useful-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: .3rem .8rem; border-radius: 2px; font-size: .7rem; font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: all .2s; }
+.useful-btn:hover { border-color: rgba(0,245,200,.3); color: var(--accent); }
+.useful-btn.voted { background: rgba(0,245,200,.08); border-color: rgba(0,245,200,.3); color: var(--accent); }
+
+/* RIGHT COLUMN — PURCHASE CARD */
+.purchase-card { position: sticky; top: 90px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.purchase-game-mini { height: 180px; background: linear-gradient(135deg, #0b0120, #0a1535, #050e20); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.pgm-art { width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, rgba(0,245,200,.25), rgba(124,58,237,.3), transparent 75%); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; animation: pulse2 3s ease-in-out infinite; }
+.pgm-rings { position: absolute; width: 200px; height: 200px; border-radius: 50%; border: 1px solid rgba(0,245,200,.1); animation: spin 15s linear infinite; }
+.pgm-rings2 { width: 140px; height: 140px; border-color: rgba(255,61,113,.1); animation-duration: 9s; animation-direction: reverse; }
+
+.purchase-body { padding: 1.8rem; }
+.price-block { margin-bottom: 1.5rem; }
+.price-original { font-size: .8rem; color: var(--muted); text-decoration: line-through; font-family: 'Space Mono', monospace; }
+.price-sale-badge { display: inline-block; background: var(--accent2); color: #fff; padding: .2rem .6rem; border-radius: 2px; font-size: .65rem; font-weight: 700; letter-spacing: 1px; margin-left: .5rem; }
+.price-main { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--accent); line-height: 1; margin: .3rem 0; }
+.price-note { font-size: .72rem; color: var(--muted); }
+
+/* Wishlist toggle */
+.wishlist-toggle { display: flex; align-items: center; gap: .6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: .8rem 1.2rem; cursor: pointer; width: 100%; margin-bottom: .8rem; transition: all .3s; }
+.wishlist-toggle:hover { border-color: rgba(255,61,113,.3); }
+.wishlist-toggle.active { background: rgba(255,61,113,.07); border-color: rgba(255,61,113,.3); }
+.wishlist-heart { font-size: 1.1rem; transition: transform .3s; }
+.wishlist-toggle.active .wishlist-heart { transform: scale(1.2); }
+.wishlist-text { font-size: .78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); flex: 1; transition: color .3s; }
+.wishlist-toggle.active .wishlist-text { color: var(--accent2); }
+.wishlist-count { font-family: 'Space Mono', monospace; font-size: .7rem; color: var(--muted); }
+
+/* Buy button */
+.btn-buy { width: 100%; background: var(--accent); color: var(--bg); border: none; padding: 1rem; border-radius: 3px; font-family: 'Syne', sans-serif; font-size: .88rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all .25s; margin-bottom: .8rem; display: flex; align-items: center; justify-content: center; gap: .6rem; }
+.btn-buy:hover { box-shadow: 0 0 35px rgba(0,245,200,.4); transform: translateY(-1px); }
+.btn-buy:active { transform: translateY(0); }
+.btn-trial { width: 100%; background: transparent; color: var(--muted); border: 1px solid var(--border); padding: .8rem; border-radius: 3px; font-family: 'Syne', sans-serif; font-size: .8rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all .2s; margin-bottom: 1.5rem; }
+.btn-trial:hover { border-color: rgba(255,255,255,.15); color: var(--text); }
+
+/* Payment methods */
+.payment-methods { margin-bottom: 1.5rem; }
+.pm-label { font-size: .65rem; color: var(--muted); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: .7rem; }
+.pm-icons { display: flex; gap: .5rem; flex-wrap: wrap; }
+.pm-icon { background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: .35rem .7rem; font-size: .65rem; font-weight: 700; color: var(--muted); letter-spacing: .5px; transition: border-color .2s; }
+.pm-icon:hover { border-color: rgba(0,245,200,.25); color: var(--accent); }
+
+/* Game info mini */
+.game-info-mini { display: flex; flex-direction: column; gap: .6rem; padding-top: 1.2rem; border-top: 1px solid var(--border); }
+.info-row { display: flex; justify-content: space-between; align-items: center; }
+.info-key { font-size: .72rem; color: var(--muted); }
+.info-val { font-size: .72rem; font-family: 'Space Mono', monospace; color: var(--text); }
+.info-val.green { color: var(--accent); }
+
+/* Download progress (shown after purchase) */
+.download-progress { display: none; padding: 1.2rem; background: rgba(0,245,200,.04); border-top: 1px solid rgba(0,245,200,.1); }
+.dl-label { font-size: .72rem; color: var(--accent); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: .6rem; display: flex; justify-content: space-between; }
+.dl-bar-track { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+.dl-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), rgba(0,245,200,.5)); border-radius: 2px; width: 0%; transition: width .3s; }
+.dl-speed { font-size: .68rem; color: var(--muted); margin-top: .5rem; font-family: 'Space Mono', monospace; }
+
+/* MODAL — Payment */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .3s; backdrop-filter: blur(6px); }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--surface); border: 1px solid rgba(0,245,200,.15); border-radius: 8px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 40px 80px rgba(0,0,0,.6), 0 0 60px rgba(0,245,200,.05); animation: slideUp .3s ease; }
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header { padding: 1.8rem 2rem 1.2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; }
+.modal-close { background: transparent; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; padding: .3rem; transition: color .2s; }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 2rem; }
+.modal-product { display: flex; gap: 1.2rem; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1rem; margin-bottom: 2rem; }
+.modal-product-art { width: 55px; height: 55px; border-radius: 4px; background: linear-gradient(135deg, #0b0120, #0a1535); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+.modal-product-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 1px; }
+.modal-product-price { font-family: 'Space Mono', monospace; font-size: .85rem; color: var(--accent); }
+.modal-product-detail { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+
+/* Payment tabs */
+.pay-tabs { display: flex; gap: .4rem; margin-bottom: 1.8rem; }
+.pay-tab { flex: 1; padding: .65rem; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; color: var(--muted); transition: all .2s; text-align: center; }
+.pay-tab.active, .pay-tab:hover { background: rgba(0,245,200,.06); border-color: rgba(0,245,200,.3); color: var(--accent); }
+.pay-panel { display: none; }
+.pay-panel.active { display: block; }
+
+/* Form fields */
+.field-group { margin-bottom: 1.2rem; }
+.field-label { font-size: .68rem; color: var(--muted); font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: .45rem; display: block; }
+.field-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: 'Space Mono', monospace; font-size: .85rem; padding: .8rem 1rem; outline: none; transition: border-color .3s; }
+.field-input:focus { border-color: rgba(0,245,200,.4); box-shadow: 0 0 0 2px rgba(0,245,200,.05); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.card-visual { background: linear-gradient(135deg, #1a0a30, #0a1535); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; height: 100px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,.06); position: relative; overflow: hidden; }
+.card-visual::before { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; border-radius: 50%; background: rgba(124,58,237,.15); }
+.card-chip { width: 30px; height: 22px; background: linear-gradient(135deg, rgba(251,191,36,.6), rgba(251,191,36,.3)); border-radius: 3px; }
+.card-number-display { font-family: 'Space Mono', monospace; font-size: .85rem; color: rgba(255,255,255,.7); letter-spacing: 2px; }
+.security-badges { display: flex; gap: .6rem; align-items: center; margin-bottom: 1.5rem; }
+.sec-badge { display: flex; align-items: center; gap: .3rem; font-size: .65rem; color: var(--muted); }
+.sec-badge::before { content: '🔒'; font-size: .75rem; }
+.btn-pay { width: 100%; background: var(--accent); color: var(--bg); border: none; padding: 1.1rem; border-radius: 3px; font-family: 'Syne', sans-serif; font-size: .88rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all .25s; display: flex; align-items: center; justify-content: center; gap: .6rem; }
+.btn-pay:hover { box-shadow: 0 0 30px rgba(0,245,200,.4); }
+.btn-pay:disabled { opacity: .5; cursor: not-allowed; }
+
+/* DEV SPACE */
+.dev-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+.dev-info { display: flex; align-items: center; gap: 1.2rem; }
+.dev-avatar { width: 56px; height: 56px; border-radius: 50%; background: rgba(124,58,237,.15); border: 2px solid rgba(124,58,237,.3); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.dev-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; }
+.dev-handle { font-size: .75rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+.dev-verified { display: inline-flex; align-items: center; gap: .3rem; background: rgba(0,245,200,.08); border: 1px solid rgba(0,245,200,.2); color: var(--accent); padding: .25rem .7rem; border-radius: 2px; font-size: .65rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: .3rem; }
+.btn-follow { background: transparent; border: 1px solid rgba(124,58,237,.4); color: #a78bfa; padding: .55rem 1.4rem; border-radius: 2px; font-family: 'Syne', sans-serif; font-size: .75rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all .2s; }
+.btn-follow:hover, .btn-follow.following { background: rgba(124,58,237,.1); }
+.dev-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+.dev-stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1.2rem; text-align: center; }
+.dev-stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--accent); line-height: 1; }
+.dev-stat-lbl { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 3px; }
+.dev-bio { font-size: .88rem; color: #9ca3af; line-height: 1.7; padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 2rem; }
+.dev-other-games h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; margin-bottom: 1.2rem; }
+.dev-games-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; }
+.dev-game-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; cursor: pointer; transition: all .3s; }
+.dev-game-card:hover { border-color: rgba(0,245,200,.2); transform: translateY(-3px); }
+.dgc-thumb { height: 80px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+.dgc1 { background: linear-gradient(135deg, #0a1a14, #140a1a); }
+.dgc2 { background: linear-gradient(135deg, #1a0a0a, #0a0a1a); }
+.dgc3 { background: linear-gradient(135deg, #0d1a3a, #1a0533); }
+.dgc-info { padding: .8rem; }
+.dgc-name { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; }
+.dgc-price { font-family: 'Space Mono', monospace; font-size: .72rem; color: var(--accent); }
+
+/* Similar games */
+.similar-section { margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--border); }
+.similar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.sim-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; cursor: pointer; transition: all .3s; }
+.sim-card:hover { transform: translateY(-4px); border-color: rgba(0,245,200,.15); }
+.sim-thumb { height: 110px; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+.sc1 { background: linear-gradient(135deg, #0a0a14, #14140a); }
+.sc2 { background: linear-gradient(135deg, #0a1a0a, #1a0a0a); }
+.sc3 { background: linear-gradient(135deg, #140a14, #0a1414); }
+.sc4 { background: linear-gradient(135deg, #0d1a3a, #0a1a14); }
+.sim-info { padding: .8rem 1rem; }
+.sim-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1px; margin-bottom: .2rem; }
+.sim-price { font-family: 'Space Mono', monospace; font-size: .75rem; color: var(--muted); }
+.sim-price.free { color: var(--accent); }
+
+/* Section title */
+.sec-label { font-size: .65rem; color: var(--accent); font-weight: 700; letter-spacing: 3px; text-transform: uppercase; margin-bottom: .4rem; }
+.sec-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 2px; margin-bottom: 2rem; line-height: 1; }
+
+/* Toast */
+.toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--surface); border: 1px solid rgba(0,245,200,.3); border-radius: 4px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: .8rem; font-size: .85rem; font-weight: 600; z-index: 600; transform: translateY(100px); opacity: 0; transition: all .4s cubic-bezier(.17,.67,.4,1.3); box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-icon { font-size: 1.2rem; }
+.toast-msg { color: var(--text); }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .page-layout { grid-template-columns: 1fr; padding: 2rem; }
+  .purchase-card { position: static; }
+  .similar-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 700px) {
+  nav { padding: 0 1.2rem; }
+  .hero-title-overlay { left: 1.5rem; bottom: 1.5rem; }
+  .page-layout { padding: 1.2rem; }
+  .screenshots { grid-template-columns: repeat(2, 1fr); }
+  .specs-grid { grid-template-columns: 1fr; }
+  .dev-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .dev-games-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="game-tb.html" class="logo">GAME<span>TB</span></a>
+  <a href="game-tb.html" class="nav-back">Retour au catalogue</a>
+  <div class="nav-right">
+    <button class="btn-sm btn-outline-sm">Connexion</button>
+    <button class="btn-sm btn-solid-sm">S'inscrire</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="game-hero">
+  <div class="hero-art">
+    <div class="hero-art-layer"></div>
+    <div class="hero-grid-overlay"></div>
+    <div class="ring ring1"></div>
+    <div class="ring ring2"></div>
+    <div class="ring ring3"></div>
+    <div class="core">🗡️</div>
+  </div>
+  <div class="hero-gradient"></div>
+  <div class="hero-title-overlay">
+    <div class="hero-breadcrumb">Catalogue <span>/</span> Action RPG <span>/</span> Neon Abyss II</div>
+    <h1 class="hero-game-title">NEON<br><em>ABYSS II</em></h1>
+    <div class="hero-badges">
+      <span class="badge badge-genre">Action RPG</span>
+      <span class="badge badge-platform">PC</span>
+      <span class="badge badge-platform">Mac</span>
+      <span class="badge badge-age">16+</span>
+      <span class="badge badge-new">Nouveau</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="page-layout">
+
+  <!-- LEFT -->
+  <div>
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('desc', this)">Description</button>
+      <button class="tab" onclick="switchTab('reviews', this)">Avis (247)</button>
+      <button class="tab" onclick="switchTab('specs', this)">Configuration</button>
+      <button class="tab" onclick="switchTab('dev', this)">Développeur</button>
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div id="tab-desc" class="tab-content active">
+      <p class="game-desc">
+        <strong>Neon Abyss II</strong> vous plonge dans un monde cyberpunk post-apocalyptique où chaque décision peut être fatale. Explorez des donjons générés procéduralement, affrontez des hordes d'ennemis dans des combats effrénés et débloquez des capacités uniques à chaque run.
+      </p>
+      <p class="game-desc">
+        Avec plus de <strong>200 armes</strong>, <strong>50 compétences actives</strong> et un système de progression roguelite addictif, chaque partie est une nouvelle aventure. Les environnements néon contrastent avec une bande sonore électronique immersive composée par <strong>Luca Albetti</strong>.
+      </p>
+      <p class="game-desc">
+        Le mode coopératif en ligne permet à 4 joueurs d'explorer ensemble — partagez les ressources, combinez vos pouvoirs et survivez ensemble dans les abysses néon.
+      </p>
+
+      <div class="sec-label" style="margin-bottom:.5rem">Captures d'écran</div>
+      <div class="screenshots">
+        <div class="screenshot"><div class="ss-art ss1">⚔️</div></div>
+        <div class="screenshot"><div class="ss-art ss2">🌆</div></div>
+        <div class="screenshot"><div class="ss-art ss3">💥</div></div>
+        <div class="screenshot"><div class="ss-art ss4">🗺️</div></div>
+        <div class="screenshot"><div class="ss-art ss5">🤖</div></div>
+        <div class="screenshot"><div class="ss-art ss6">🏆</div></div>
+      </div>
+    </div>
+
+    <!-- AVIS -->
+    <div id="tab-reviews" class="tab-content">
+      <div class="reviews-header">
+        <div class="rating-big">
+          <div class="rating-num">4.7</div>
+          <div class="rating-stars">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star half">★</span>
+          </div>
+          <div class="rating-count">247 avis</div>
+        </div>
+        <div class="rating-bars">
+          <div class="bar-row"><span class="bar-label">5</span><div class="bar-track"><div class="bar-fill" style="width:72%"></div></div><span class="bar-pct">72%</span></div>
+          <div class="bar-row"><span class="bar-label">4</span><div class="bar-track"><div class="bar-fill" style="width:18%"></div></div><span class="bar-pct">18%</span></div>
+          <div class="bar-row"><span class="bar-label">3</span><div class="bar-track"><div class="bar-fill" style="width:6%"></div></div><span class="bar-pct">6%</span></div>
+          <div class="bar-row"><span class="bar-label">2</span><div class="bar-track"><div class="bar-fill" style="width:3%"></div></div><span class="bar-pct">3%</span></div>
+          <div class="bar-row"><span class="bar-label">1</span><div class="bar-track"><div class="bar-fill" style="width:1%"></div></div><span class="bar-pct">1%</span></div>
+        </div>
+      </div>
+
+      <!-- Write review -->
+      <div class="write-review">
+        <h3>Laisser un avis</h3>
+        <div class="star-picker" id="starPicker">
+          <span class="star-pick" data-v="1">★</span>
+          <span class="star-pick" data-v="2">★</span>
+          <span class="star-pick" data-v="3">★</span>
+          <span class="star-pick" data-v="4">★</span>
+          <span class="star-pick" data-v="5">★</span>
+        </div>
+        <textarea class="review-textarea" id="reviewText" placeholder="Partagez votre expérience avec ce jeu..." maxlength="500" oninput="updateChar()"></textarea>
+        <div class="review-actions">
+          <div class="char-count"><span id="charNum">0</span>/500</div>
+          <button class="btn-review" onclick="submitReview()">Publier l'avis</button>
+        </div>
+      </div>
+
+      <div class="review-list" id="reviewList">
+        <div class="review-card">
+          <div class="review-top">
+            <div class="reviewer">
+              <div class="avatar av1">KR</div>
+              <div>
+                <div class="reviewer-name">Karim_R</div>
+                <div class="reviewer-date">Il y a 3 jours</div>
+              </div>
+            </div>
+            <div class="review-stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+          </div>
+          <p class="review-text">Absolument incroyable ! Les combats sont fluides et addictifs, je n'arrive plus à décrocher. La génération procédurale garantit une rejouabilité infinie. Le mode coop est un vrai plus.</p>
+          <div class="review-useful">
+            <span class="useful-label">Utile ?</span>
+            <button class="useful-btn" onclick="voteUseful(this, 42)">👍 42</button>
+            <button class="useful-btn" onclick="voteUseful(this, 3)">👎 3</button>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-top">
+            <div class="reviewer">
+              <div class="avatar av2">SA</div>
+              <div>
+                <div class="reviewer-name">SarahA_Play</div>
+                <div class="reviewer-date">Il y a 1 semaine</div>
+              </div>
+            </div>
+            <div class="review-stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star half">★</span></div>
+          </div>
+          <p class="review-text">Très bon jeu dans l'ensemble. La bande sonore est excellente, les visuels néon sont magnifiques. Je retire une étoile pour la difficulté un peu mal calibrée dans les premiers niveaux.</p>
+          <div class="review-useful">
+            <span class="useful-label">Utile ?</span>
+            <button class="useful-btn" onclick="voteUseful(this, 28)">👍 28</button>
+            <button class="useful-btn" onclick="voteUseful(this, 5)">👎 5</button>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-top">
+            <div class="reviewer">
+              <div class="avatar av3">MO</div>
+              <div>
+                <div class="reviewer-name">Mohamed_O</div>
+                <div class="reviewer-date">Il y a 2 semaines</div>
+              </div>
+            </div>
+            <div class="review-stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+          </div>
+          <p class="review-text">Le meilleur roguelite de l'année sans hésiter. Le système de progression est brillant, chaque run apporte quelque chose de nouveau. À posséder absolument.</p>
+          <div class="review-useful">
+            <span class="useful-label">Utile ?</span>
+            <button class="useful-btn" onclick="voteUseful(this, 61)">👍 61</button>
+            <button class="useful-btn" onclick="voteUseful(this, 2)">👎 2</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG REQUISE -->
+    <div id="tab-specs" class="tab-content">
+      <div class="sec-label">Configuration minimale</div>
+      <div class="specs-grid" style="margin-bottom: 2rem;">
+        <div class="spec-item"><div class="spec-label">Système</div><div class="spec-value">Windows 10 / macOS 11</div></div>
+        <div class="spec-item"><div class="spec-label">Processeur</div><div class="spec-value">Intel i5-7600 / Ryzen 5 2600</div></div>
+        <div class="spec-item"><div class="spec-label">RAM</div><div class="spec-value">8 GB</div></div>
+        <div class="spec-item"><div class="spec-label">GPU</div><div class="spec-value">GTX 1060 / RX 580</div></div>
+        <div class="spec-item"><div class="spec-label">Stockage</div><div class="spec-value">4.5 GB</div></div>
+        <div class="spec-item"><div class="spec-label">DirectX</div><div class="spec-value">Version 11</div></div>
+      </div>
+      <div class="sec-label">Configuration recommandée</div>
+      <div class="specs-grid">
+        <div class="spec-item"><div class="spec-label">Système</div><div class="spec-value">Windows 11 / macOS 13</div></div>
+        <div class="spec-item"><div class="spec-label">Processeur</div><div class="spec-value">Intel i7-10700 / Ryzen 7 3700X</div></div>
+        <div class="spec-item"><div class="spec-label">RAM</div><div class="spec-value">16 GB</div></div>
+        <div class="spec-item"><div class="spec-label">GPU</div><div class="spec-value">RTX 3070 / RX 6700 XT</div></div>
+        <div class="spec-item"><div class="spec-label">Stockage</div><div class="spec-value">4.5 GB SSD</div></div>
+        <div class="spec-item"><div class="spec-label">DirectX</div><div class="spec-value">Version 12</div></div>
+      </div>
+    </div>
+
+    <!-- DÉVELOPPEUR -->
+    <div id="tab-dev" class="tab-content">
+      <div class="dev-header">
+        <div class="dev-info">
+          <div class="dev-avatar">🛸</div>
+          <div>
+            <div class="dev-name">NeonForge Studios</div>
+            <div class="dev-handle">@neonforge · Membre depuis 2019</div>
+            <div class="dev-verified">✓ Développeur vérifié</div>
+          </div>
+        </div>
+        <button class="btn-follow" id="followBtn" onclick="toggleFollow()">+ Suivre</button>
+      </div>
+      <div class="dev-stats-row">
+        <div class="dev-stat-box"><div class="dev-stat-num">12</div><div class="dev-stat-lbl">Jeux publiés</div></div>
+        <div class="dev-stat-box"><div class="dev-stat-num">2.1M</div><div class="dev-stat-lbl">Téléchargements</div></div>
+        <div class="dev-stat-box"><div class="dev-stat-num">4.6★</div><div class="dev-stat-lbl">Note moyenne</div></div>
+        <div class="dev-stat-box"><div class="dev-stat-num">48K</div><div class="dev-stat-lbl">Abonnés</div></div>
+      </div>
+      <div class="dev-bio">
+        NeonForge Studios est un studio indépendant fondé à Paris en 2019, spécialisé dans les jeux d'action roguelite à l'esthétique cyberpunk. Notre équipe de 8 passionnés crée des expériences immersives qui mêlent mécanique de jeu exigeante et direction artistique unique. Nos jeux ont été sélectionnés à l'IndieCade 2022 et 2023.
+      </div>
+      <div class="dev-other-games">
+        <h3>Autres jeux du développeur</h3>
+        <div class="dev-games-grid">
+          <div class="dev-game-card"><div class="dgc-thumb dgc1">🌿</div><div class="dgc-info"><div class="dgc-name">Verdant Wilds</div><div class="dgc-price">Gratuit</div></div></div>
+          <div class="dev-game-card"><div class="dgc-thumb dgc2">🤖</div><div class="dgc-info"><div class="dgc-name">Iron Protocol</div><div class="dgc-price">29,99 €</div></div></div>
+          <div class="dev-game-card"><div class="dgc-thumb dgc3">🚀</div><div class="dgc-info"><div class="dgc-name">Orbital Strike</div><div class="dgc-price">17,99 €</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIMILAR GAMES -->
+    <div class="similar-section">
+      <div class="sec-label">Vous aimerez aussi</div>
+      <div class="sec-title">JEUX SIMILAIRES</div>
+      <div class="similar-grid">
+        <div class="sim-card"><div class="sim-thumb sc1">🧙</div><div class="sim-info"><div class="sim-name">Shadow Realm</div><div class="sim-price">24,99 €</div></div></div>
+        <div class="sim-card"><div class="sim-thumb sc2">🎯</div><div class="sim-info"><div class="sim-name">Orbital Strike</div><div class="sim-price">17,99 €</div></div></div>
+        <div class="sim-card"><div class="sim-thumb sc3">🌊</div><div class="sim-info"><div class="sim-name">Tidal Drift</div><div class="sim-price">14,99 €</div></div></div>
+        <div class="sim-card"><div class="sim-thumb sc4">🏔️</div><div class="sim-info"><div class="sim-name">Peak Runner</div><div class="sim-price free">Gratuit</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT — PURCHASE -->
+  <div>
+    <div class="purchase-card">
+      <div class="purchase-game-mini">
+        <div class="pgm-rings ring pgm-rings"></div>
+        <div class="pgm-rings ring pgm-rings2"></div>
+        <div class="pgm-art">🗡️</div>
+      </div>
+      <div class="purchase-body">
+        <div class="price-block">
+          <div><span class="price-original">29,99 €</span><span class="price-sale-badge">-33%</span></div>
+          <div class="price-main">19<span style="font-size:1.5rem">,99€</span></div>
+          <div class="price-note">TVA incluse · Licence permanente</div>
+        </div>
+
+        <button class="wishlist-toggle" id="wishlistBtn" onclick="toggleWishlist()">
+          <span class="wishlist-heart">♡</span>
+          <span class="wishlist-text">Ajouter à la liste de souhaits</span>
+          <span class="wishlist-count">3 241</span>
+        </button>
+
+        <button class="btn-buy" onclick="openPayment()">
+          <span>⬇</span> Acheter & Télécharger
+        </button>
+        <button class="btn-trial" onclick="showToast('🎮 Demo lancée — 1 heure gratuite !')">Essayer la démo gratuite</button>
+
+        <div class="payment-methods">
+          <div class="pm-label">Paiements acceptés</div>
+          <div class="pm-icons">
+            <div class="pm-icon">VISA</div>
+            <div class="pm-icon">MC</div>
+            <div class="pm-icon">PAYPAL</div>
+            <div class="pm-icon">CRYPTO</div>
+            <div class="pm-icon">APPLE PAY</div>
+          </div>
+        </div>
+
+        <div class="game-info-mini">
+          <div class="info-row"><span class="info-key">Version</span><span class="info-val">v2.1.4</span></div>
+          <div class="info-row"><span class="info-key">Taille</span><span class="info-val">4.5 GB</span></div>
+          <div class="info-row"><span class="info-key">Langue</span><span class="info-val">FR · EN · ES · DE</span></div>
+          <div class="info-row"><span class="info-key">Antivirus</span><span class="info-val green">✓ Vérifié</span></div>
+          <div class="info-row"><span class="info-key">Mis à jour</span><span class="info-val">12 mars 2025</span></div>
+          <div class="info-row"><span class="info-key">DRM</span><span class="info-val green">DRM-Free</span></div>
+        </div>
+
+        <div class="download-progress" id="dlProgress">
+          <div class="dl-label"><span>Téléchargement</span><span id="dlPct">0%</span></div>
+          <div class="dl-bar-track"><div class="dl-bar-fill" id="dlBar"></div></div>
+          <div class="dl-speed" id="dlSpeed">Initialisation...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Finaliser l'achat</div>
+      <button class="modal-close" onclick="closePayment()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-product">
+        <div class="modal-product-art">🗡️</div>
+        <div>
+          <div class="modal-product-name">Neon Abyss II</div>
+          <div class="modal-product-detail">PC + Mac · Licence permanente · DRM-Free</div>
+        </div>
+        <div style="margin-left:auto; text-align:right;">
+          <div class="modal-product-price">19,99 €</div>
+          <div style="font-size:.65rem; color: var(--accent2); margin-top:2px;">-33% économisé</div>
+        </div>
+      </div>
+
+      <div class="pay-tabs">
+        <button class="pay-tab active" onclick="switchPayTab('card', this)">💳 Carte</button>
+        <button class="pay-tab" onclick="switchPayTab('paypal', this)">🅿 PayPal</button>
+        <button class="pay-tab" onclick="switchPayTab('crypto', this)">₿ Crypto</button>
+      </div>
+
+      <!-- CARD -->
+      <div id="pay-card" class="pay-panel active">
+        <div class="card-visual">
+          <div class="card-chip"></div>
+          <div class="card-number-display" id="cardDisplay">•••• •••• •••• ••••</div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Numéro de carte</label>
+          <input class="field-input" type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)" id="cardNum">
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Expiration</label>
+            <input class="field-input" type="text" placeholder="MM/AA" maxlength="5" oninput="formatExp(this)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">CVV</label>
+            <input class="field-input" type="password" placeholder="•••" maxlength="3">
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Nom sur la carte</label>
+          <input class="field-input" type="text" placeholder="JEAN DUPONT">
+        </div>
+        <div class="security-badges">
+          <div class="sec-badge">Paiement sécurisé SSL</div>
+          <div class="sec-badge">3D Secure</div>
+          <div class="sec-badge">Données chiffrées</div>
+        </div>
+        <button class="btn-pay" onclick="processPayment()">🔒 Payer 19,99 €</button>
+      </div>
+
+      <!-- PAYPAL -->
+      <div id="pay-paypal" class="pay-panel">
+        <div style="text-align:center; padding: 2rem 0;">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">🅿</div>
+          <p style="color: var(--muted); font-size: .9rem; margin-bottom: 1.5rem;">Vous serez redirigé vers PayPal pour finaliser votre paiement en toute sécurité.</p>
+          <button class="btn-pay" style="max-width: 300px; margin: 0 auto;" onclick="processPayment()">Continuer avec PayPal</button>
+        </div>
+      </div>
+
+      <!-- CRYPTO -->
+      <div id="pay-crypto" class="pay-panel">
+        <div style="text-align:center; padding: 1.5rem 0;">
+          <div style="font-size: 2.5rem; margin-bottom: .8rem;">₿</div>
+          <p style="color: var(--muted); font-size: .85rem; margin-bottom: 1rem;">Équivalent en crypto</p>
+          <div style="font-family: 'Space Mono', monospace; font-size: 1.2rem; color: var(--accent); margin-bottom: 1.5rem;">≈ 0.000312 BTC</div>
+          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1rem; margin-bottom: 1.5rem;">
+            <div style="font-size:.65rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: .4rem;">Adresse wallet</div>
+            <div style="font-family: 'Space Mono', monospace; font-size: .72rem; color: var(--text); word-break: break-all;">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</div>
+          </div>
+          <button class="btn-pay" style="max-width:300px; margin: 0 auto;" onclick="processPayment()">Confirmer le paiement</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon">✅</span>
+  <span class="toast-msg" id="toastMsg">Action réalisée avec succès</span>
+</div>
+
+<script>
+// Cursor
+const cur = document.getElementById('cursor'), ring = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e=>{mx=e.clientX;my=e.clientY;});
+(function anim(){cur.style.left=mx+'px';cur.style.top=my+'px';rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
+document.querySelectorAll('a,button,.sim-card,.dev-game-card,.screenshot').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='18px';cur.style.height='18px';ring.style.width='54px';ring.style.height='54px';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='10px';cur.style.height='10px';ring.style.width='32px';ring.style.height='32px';});
+});
+
+// Tabs
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Payment modal
+function openPayment() { document.getElementById('payModal').classList.add('open'); }
+function closePayment() { document.getElementById('payModal').classList.remove('open'); }
+document.getElementById('payModal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closePayment(); });
+
+function switchPayTab(id, btn) {
+  document.querySelectorAll('.pay-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.pay-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pay-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Card formatting
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+  document.getElementById('cardDisplay').textContent = input.value || '•••• •••• •••• ••••';
+}
+function formatExp(input) {
+  let v = input.value.replace(/\D/g,'');
+  if(v.length>=2) v = v.substring(0,2)+'/'+v.substring(2,4);
+  input.value = v;
+}
+
+// Process payment
+function processPayment() {
+  const btn = document.querySelector('.btn-pay');
+  btn.disabled = true; btn.textContent = '⏳ Traitement...';
+  setTimeout(()=>{
+    closePayment();
+    showToast('✅ Achat confirmé — Téléchargement démarré !');
+    startDownload();
+  }, 2200);
+}
+
+// Download simulation
+function startDownload() {
+  const prog = document.getElementById('dlProgress');
+  const bar = document.getElementById('dlBar');
+  const pct = document.getElementById('dlPct');
+  const spd = document.getElementById('dlSpeed');
+  prog.style.display = 'block';
+  let p = 0;
+  const speeds = ['2.4 MB/s','5.1 MB/s','8.7 MB/s','12.3 MB/s','9.8 MB/s','6.2 MB/s'];
+  const iv = setInterval(()=>{
+    p += Math.random()*4 + 1;
+    if(p >= 100) { p=100; clearInterval(iv); spd.textContent='✓ Téléchargement terminé'; showToast('🎮 Neon Abyss II installé !'); }
+    bar.style.width = p+'%'; pct.textContent = Math.floor(p)+'%';
+    spd.textContent = speeds[Math.floor(Math.random()*speeds.length)] + ' · ' + Math.floor(p/100*4.5*10)/10 + ' / 4.5 GB';
+  }, 180);
+}
+
+// Wishlist
+let wished = false;
+function toggleWishlist() {
+  wished = !wished;
+  const btn = document.getElementById('wishlistBtn');
+  btn.classList.toggle('active', wished);
+  btn.querySelector('.wishlist-heart').textContent = wished ? '♥' : '♡';
+  btn.querySelector('.wishlist-text').textContent = wished ? 'Dans la liste de souhaits' : 'Ajouter à la liste de souhaits';
+  const cnt = btn.querySelector('.wishlist-count');
+  cnt.textContent = wished ? '3 242' : '3 241';
+  showToast(wished ? '♥ Ajouté à vos souhaits !' : '♡ Retiré de vos souhaits');
+}
+
+// Follow dev
+let following = false;
+function toggleFollow() {
+  following = !following;
+  const btn = document.getElementById('followBtn');
+  btn.textContent = following ? '✓ Abonné' : '+ Suivre';
+  btn.classList.toggle('following', following);
+  showToast(following ? '🛸 Vous suivez NeonForge Studios' : 'Abonnement annulé');
+}
+
+// Star picker
+let selectedRating = 0;
+document.querySelectorAll('.star-pick').forEach((s,i)=>{
+  s.addEventListener('mouseenter',()=>{
+    document.querySelectorAll('.star-pick').forEach((x,j)=>x.classList.toggle('selected',j<=i));
+  });
+  s.addEventListener('mouseleave',()=>{
+    document.querySelectorAll('.star-pick').forEach((x,j)=>x.classList.toggle('selected',j<selectedRating));
+  });
+  s.addEventListener('click',()=>{
+    selectedRating = i+1;
+    document.querySelectorAll('.star-pick').forEach((x,j)=>x.classList.toggle('selected',j<selectedRating));
+  });
+});
+
+function updateChar() {
+  document.getElementById('charNum').textContent = document.getElementById('reviewText').value.length;
+}
+
+function submitReview() {
+  const txt = document.getElementById('reviewText').value.trim();
+  if(!selectedRating) { showToast('⚠️ Choisissez une note avant de publier'); return; }
+  if(!txt) { showToast('⚠️ Écrivez un avis avant de publier'); return; }
+  const list = document.getElementById('reviewList');
+  const stars = '★'.repeat(selectedRating) + (selectedRating < 5 ? '<span class="star half">★</span>'.repeat(5-selectedRating) : '');
+  const card = document.createElement('div');
+  card.className = 'review-card';
+  card.style.animation = 'slideUp .4s ease';
+  card.innerHTML = `<div class="review-top"><div class="reviewer"><div class="avatar av1">Moi</div><div><div class="reviewer-name">Vous</div><div class="reviewer-date">À l'instant</div></div></div><div class="review-stars">${'<span class="star">★</span>'.repeat(selectedRating)}</div></div><p class="review-text">${txt}</p><div class="review-useful"><span class="useful-label">Utile ?</span><button class="useful-btn" onclick="voteUseful(this,0)">👍 0</button><button class="useful-btn" onclick="voteUseful(this,0)">👎 0</button></div>`;
+  list.insertBefore(card, list.firstChild);
+  document.getElementById('reviewText').value = '';
+  document.getElementById('charNum').textContent = '0';
+  selectedRating = 0;
+  document.querySelectorAll('.star-pick').forEach(s=>s.classList.remove('selected'));
+  showToast('✅ Avis publié — Merci !');
+}
+
+function voteUseful(btn, count) {
+  if(btn.classList.contains('voted')) return;
+  btn.classList.add('voted');
+  const num = parseInt(btn.textContent.replace(/\D/g,'')) + 1;
+  btn.textContent = btn.textContent.replace(/\d+/, num);
+}
+
+// Toast
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// Intersection animations
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});
+},{threshold:.1});
+document.querySelectorAll('.sim-card,.dev-game-card,.spec-item,.review-card').forEach((el,i)=>{
+  el.style.opacity='0'; el.style.transform='translateY(20px)';
+  el.style.transition=`opacity .4s ${i*.07}s ease, transform .4s ${i*.07}s ease`;
+  obs.observe(el);
+});
+</script>
+</body>
+</html>

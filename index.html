@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Game TB - Téléchargez vos jeux vidéo préférés. Catalogue immense, téléchargement sécurisé, gratuit et rapide.">
+<title>Game TB — Votre univers de jeux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b14;
+    --surface: #0d1220;
+    --surface2: #111827;
+    --accent: #00f5c8;
+    --accent2: #ff3d71;
+    --accent3: #7c3aed;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --border: rgba(255,255,255,0.06);
+    --glow: 0 0 40px rgba(0,245,200,0.15);
+    --glow2: 0 0 40px rgba(255,61,113,0.2);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1.5px solid rgba(0,245,200,0.4);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease-out, width 0.3s, height 0.3s, opacity 0.3s;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 0 3rem;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(8,11,20,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(0,245,200,0.5);
+    text-decoration: none;
+  }
+  .logo span { color: var(--accent2); }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0;
+    width: 0; height: 1px;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-links a:hover::after { width: 100%; }
+
+  .nav-actions { display: flex; gap: 1rem; align-items: center; }
+  .btn-nav {
+    padding: 0.5rem 1.4rem;
+    border-radius: 3px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-outline {
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    background: transparent;
+  }
+  .btn-outline:hover { background: rgba(0,245,200,0.08); }
+  .btn-solid {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+  }
+  .btn-solid:hover { box-shadow: 0 0 25px rgba(0,245,200,0.4); transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    padding-top: 70px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    padding-left: 5rem;
+    padding-right: 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 70% 50%, rgba(124,58,237,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0,245,200,0.05) 0%, transparent 70%);
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  }
+
+  .hero-content { position: relative; z-index: 2; }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 1rem;
+    border: 1px solid rgba(0,245,200,0.3);
+    border-radius: 2px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.6s ease both;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 7vw, 7rem);
+    line-height: 0.9;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.6s 0.1s ease both;
+  }
+  .hero-title .line2 { color: var(--accent); text-shadow: 0 0 60px rgba(0,245,200,0.3); }
+  .hero-title .line3 { color: var(--text); }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+    animation: fadeInUp 0.6s 0.2s ease both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    animation: fadeInUp 0.6s 0.3s ease both;
+  }
+
+  .btn-hero {
+    padding: 0.9rem 2.2rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 2px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+  }
+  .btn-primary:hover { box-shadow: 0 0 40px rgba(0,245,200,0.5); transform: translateY(-2px); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); }
+
+  .hero-stats {
+    display: flex;
+    gap: 2.5rem;
+    margin-top: 3rem;
+    animation: fadeInUp 0.6s 0.4s ease both;
+  }
+  .stat { }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label { font-size: 0.75rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+
+  /* HERO FEATURED GAME */
+  .hero-visual {
+    position: relative;
+    z-index: 2;
+    animation: fadeInRight 0.8s 0.2s ease both;
+  }
+
+  .featured-card {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 60px rgba(124,58,237,0.15);
+    transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
+    transition: transform 0.5s ease;
+  }
+  .featured-card:hover { transform: perspective(1000px) rotateY(0) rotateX(0); }
+
+  .featured-img {
+    width: 100%;
+    height: 360px;
+    background: linear-gradient(135deg, #1a0533 0%, #0d1a3a 40%, #0a2a1a 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .game-art {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Abstract game art using pure CSS */
+  .art-circle {
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,245,200,0.3) 0%, rgba(124,58,237,0.4) 50%, transparent 70%);
+    position: absolute;
+    animation: rotateSlow 8s linear infinite;
+    box-shadow: 0 0 80px rgba(0,245,200,0.2);
+  }
+  .art-ring {
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,245,200,0.2);
+    position: absolute;
+    animation: rotateSlow 12s linear infinite reverse;
+  }
+  .art-ring2 {
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,61,113,0.3);
+    position: absolute;
+    animation: rotateSlow 6s linear infinite;
+  }
+  .art-hex {
+    width: 100px; height: 115px;
+    background: rgba(0,245,200,0.1);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    position: absolute;
+    animation: float 4s ease-in-out infinite;
+    border: 1px solid rgba(0,245,200,0.3);
+  }
+
+  @keyframes rotateSlow { to { transform: rotate(360deg); } }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+  .featured-badge {
+    position: absolute;
+    top: 16px; left: 16px;
+    background: var(--accent2);
+    color: #fff;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 2px;
+  }
+
+  .featured-info { padding: 1.5rem; }
+  .featured-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+  .featured-genre {
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .featured-rating { display: flex; gap: 2px; }
+  .star { color: #fbbf24; font-size: 0.8rem; }
+  .featured-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 1px; margin-bottom: 0.5rem; }
+  .featured-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin-bottom: 1.2rem; }
+  .featured-footer { display: flex; align-items: center; justify-content: space-between; }
+  .featured-price { font-family: 'Space Mono', monospace; font-size: 1.2rem; color: var(--accent); font-weight: 700; }
+  .btn-download {
+    background: var(--accent2);
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.4rem;
+    border-radius: 2px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .btn-download:hover { box-shadow: 0 0 25px rgba(255,61,113,0.5); transform: translateY(-1px); }
+
+  /* SEARCH BAR */
+  .search-section {
+    padding: 2rem 5rem;
+    position: relative;
+    z-index: 10;
+  }
+  .search-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1.5rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .search-wrap:focus-within { border-color: rgba(0,245,200,0.4); box-shadow: var(--glow); }
+  .search-icon { color: var(--muted); font-size: 1.1rem; }
+  .search-wrap input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    padding: 1.1rem 0;
+  }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .search-divider { width: 1px; height: 24px; background: var(--border); }
+  .search-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .search-filter:hover { color: var(--accent); }
+  .search-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 0.65rem 1.8rem;
+    border-radius: 2px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .search-btn:hover { box-shadow: 0 0 20px rgba(0,245,200,0.4); }
+
+  /* CATEGORIES */
+  .section { padding: 5rem; }
+  .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; }
+  .section-label {
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .view-all {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .view-all:hover { color: var(--accent); border-color: var(--accent); }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+  }
+  .cat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .cat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 50%, rgba(0,245,200,0.03));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .cat-card:hover { border-color: rgba(0,245,200,0.3); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+  .cat-card:hover::before { opacity: 1; }
+  .cat-icon { font-size: 2rem; margin-bottom: 0.8rem; }
+  .cat-name { font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .cat-count { font-size: 0.7rem; color: var(--muted); margin-top: 4px; font-family: 'Space Mono', monospace; }
+
+  /* GAMES GRID */
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+
+  .game-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .game-card:hover { transform: translateY(-6px); box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 0 30px rgba(0,245,200,0.05); border-color: rgba(0,245,200,0.15); }
+  .game-card:hover .game-overlay { opacity: 1; }
+
+  .game-thumb {
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+  }
+  .game-thumb-bg {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease;
+  }
+  .game-card:hover .game-thumb-bg { transform: scale(1.05); }
+
+  .game-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+    gap: 0.8rem;
+  }
+  .overlay-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .overlay-btn:hover { transform: scale(1.1); }
+  .overlay-btn.wish {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    color: #fff;
+  }
+
+  .game-platform-tags {
+    position: absolute;
+    top: 10px; right: 10px;
+    display: flex; gap: 4px;
+  }
+  .platform-tag {
+    background: rgba(0,0,0,0.6);
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    backdrop-filter: blur(4px);
+  }
+  .tag-free { background: rgba(0,245,200,0.2); color: var(--accent); border: 1px solid rgba(0,245,200,0.3); }
+  .tag-sale { background: rgba(255,61,113,0.2); color: var(--accent2); border: 1px solid rgba(255,61,113,0.3); }
+  .tag-new { background: rgba(124,58,237,0.2); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
+
+  .game-info { padding: 1.2rem; }
+  .game-genre { font-size: 0.65rem; color: var(--accent); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .game-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 1px; margin-bottom: 0.4rem; }
+  .game-meta { display: flex; justify-content: space-between; align-items: center; }
+  .game-price { font-family: 'Space Mono', monospace; font-size: 0.95rem; color: var(--text); }
+  .game-price.free { color: var(--accent); }
+  .game-price.sale { color: var(--accent2); }
+  .game-stars { display: flex; gap: 1px; font-size: 0.7rem; }
+  .game-downloads { font-size: 0.7rem; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 4px; }
+
+  /* BANNER PROMO */
+  .promo-banner {
+    margin: 0 5rem;
+    background: linear-gradient(135deg, #0d1220 0%, #1a0a2e 50%, #0a1a14 100%);
+    border: 1px solid rgba(0,245,200,0.15);
+    border-radius: 8px;
+    padding: 4rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 3rem;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .promo-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -10%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,245,200,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .promo-tag {
+    display: inline-block;
+    background: var(--accent2);
+    color: #fff;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+  }
+  .promo-title { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; letter-spacing: 2px; line-height: 0.95; margin-bottom: 1rem; }
+  .promo-title span { color: var(--accent); }
+  .promo-desc { color: var(--muted); line-height: 1.6; max-width: 500px; font-size: 0.95rem; }
+  .promo-countdown { text-align: right; }
+  .countdown-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 1rem; }
+  .countdown-timer { display: flex; gap: 1rem; }
+  .countdown-block { text-align: center; }
+  .countdown-num { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: var(--accent); line-height: 1; }
+  .countdown-unit { font-size: 0.6rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .countdown-sep { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--accent); align-self: flex-start; padding-top: 2px; opacity: 0.5; }
+
+  /* DEV SECTION */
+  .dev-section {
+    margin: 5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+  .dev-features { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
+  .dev-feature { display: flex; gap: 1rem; align-items: flex-start; }
+  .dev-icon { width: 44px; height: 44px; background: rgba(0,245,200,0.08); border: 1px solid rgba(0,245,200,0.15); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+  .dev-feature-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .dev-feature-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+  .dev-visual { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .dev-stat-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem;
+  }
+  .dev-stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--accent); margin-bottom: 0.3rem; }
+  .dev-stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .dev-stat-card.highlight { border-color: rgba(0,245,200,0.3); background: rgba(0,245,200,0.03); }
+  .dev-stat-card.highlight .dev-stat-num { color: var(--accent2); }
+
+  /* FOOTER */
+  footer {
+    margin-top: 5rem;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 4rem 5rem 2rem;
+  }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 4rem; margin-bottom: 3rem; }
+  .footer-brand .logo { font-size: 1.8rem; display: block; margin-bottom: 1rem; }
+  .footer-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; max-width: 260px; margin-bottom: 1.5rem; }
+  .footer-social { display: flex; gap: 0.8rem; }
+  .social-btn {
+    width: 38px; height: 38px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .social-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .footer-col h4 { font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text); margin-bottom: 1.2rem; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+  .footer-col ul a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+  .footer-col ul a:hover { color: var(--accent); }
+  .footer-bottom { border-top: 1px solid var(--border); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; }
+  .footer-copy { font-size: 0.8rem; color: var(--muted); }
+  .footer-copy span { color: var(--accent); }
+  .footer-links { display: flex; gap: 2rem; }
+  .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.78rem; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--text); }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Generate different game card backgrounds */
+  .gcolor-1 { background: linear-gradient(135deg, #0d1a3a 0%, #1a0533 100%); }
+  .gcolor-2 { background: linear-gradient(135deg, #0a1a0a 0%, #0d1a2a 100%); }
+  .gcolor-3 { background: linear-gradient(135deg, #1a0a0a 0%, #0d0d2a 100%); }
+  .gcolor-4 { background: linear-gradient(135deg, #0a0a1a 0%, #1a1a0a 100%); }
+  .gcolor-5 { background: linear-gradient(135deg, #0a1a14 0%, #1a0a1a 100%); }
+  .gcolor-6 { background: linear-gradient(135deg, #14140a 0%, #0a1414 100%); }
+  .gcolor-7 { background: linear-gradient(135deg, #1a0a14 0%, #0a1a0a 100%); }
+  .gcolor-8 { background: linear-gradient(135deg, #0a0a14 0%, #140a14 100%); }
+
+  .game-art-mini {
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    position: relative;
+  }
+  .game-art-mini::before {
+    content: '';
+    position: absolute;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+  }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 2.5rem; }
+  .tab {
+    padding: 0.5rem 1.5rem;
+    border-radius: 2px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .tab.active, .tab:hover { background: rgba(0,245,200,0.08); border-color: rgba(0,245,200,0.3); color: var(--accent); }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .hero { grid-template-columns: 1fr; padding: 6rem 3rem 3rem; }
+    .hero-visual { display: none; }
+    .categories-grid { grid-template-columns: repeat(3, 1fr); }
+    .games-grid { grid-template-columns: repeat(3, 1fr); }
+    .footer-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    nav { padding: 0 1.5rem; }
+    .nav-links { display: none; }
+    .hero { padding: 5rem 1.5rem 2rem; }
+    .section, .promo-banner, .dev-section { padding: 3rem 1.5rem; margin: 0; }
+    .search-section { padding: 1rem 1.5rem; }
+    .categories-grid { grid-template-columns: repeat(2, 1fr); }
+    .games-grid { grid-template-columns: repeat(2, 1fr); }
+    .promo-banner { grid-template-columns: 1fr; }
+    .dev-section { grid-template-columns: 1fr; }
+    .footer { padding: 3rem 1.5rem 2rem; }
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+  }
+
+  /* Notification badge */
+  .notif {
+    position: relative;
+  }
+  .notif::after {
+    content: '3';
+    position: absolute;
+    top: -8px; right: -8px;
+    background: var(--accent2);
+    color: #fff;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 18px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">GAME<span>TB</span></a>
+  <ul class="nav-links">
+    <li><a href="#catalogue">Catalogue</a></li>
+    <li><a href="#nouveautes">Nouveautés</a></li>
+    <li><a href="#dev">Développeurs</a></li>
+    <li><a href="#community">Communauté</a></li>
+    <li><a href="#support">Support</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="#" class="btn-nav btn-outline notif">Connexion</a>
+    <a href="#" class="btn-nav btn-solid">S'inscrire</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Plateforme de téléchargement #1</div>
+    <h1 class="hero-title">
+      <div>VOTRE</div>
+      <div class="line2">UNIVERS</div>
+      <div class="line3">DE JEUX</div>
+    </h1>
+    <p class="hero-sub">Téléchargez des milliers de jeux vidéo — gratuits, indépendants ou commerciaux. Rapide, sécurisé, et toujours à jour.</p>
+    <div class="hero-actions">
+      <a href="#catalogue" class="btn-hero btn-primary">
+        <span>▶</span> Explorer le catalogue
+      </a>
+      <a href="#" class="btn-hero btn-secondary">Créer un compte</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-num">12K+</div>
+        <div class="stat-label">Jeux disponibles</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">850K</div>
+        <div class="stat-label">Joueurs actifs</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">4.2M</div>
+        <div class="stat-label">Téléchargements</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="featured-card">
+      <div class="featured-img">
+        <div class="game-art">
+          <div class="art-circle"></div>
+          <div class="art-ring"></div>
+          <div class="art-ring2"></div>
+          <div class="art-hex"></div>
+        </div>
+        <div class="featured-badge">★ JEU VEDETTE</div>
+      </div>
+      <div class="featured-info">
+        <div class="featured-meta">
+          <div class="featured-genre">Action · RPG</div>
+          <div class="featured-rating">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+          </div>
+        </div>
+        <div class="featured-title">Neon Abyss II</div>
+        <div class="featured-desc">Plongez dans un monde cyberpunk post-apocalyptique. Combats effrénés et exploration immersive.</div>
+        <div class="featured-footer">
+          <div class="featured-price">19,99 €</div>
+          <button class="btn-download">⬇ Télécharger</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEARCH -->
+<div class="search-section">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Rechercher un jeu, un genre, un développeur...">
+    <div class="search-divider"></div>
+    <div class="search-filter">
+      <span>🎮</span> Toutes plateformes
+    </div>
+    <div class="search-divider"></div>
+    <div class="search-filter">
+      <span>⭐</span> Note
+    </div>
+    <button class="search-btn">Rechercher</button>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<section class="section" id="catalogue">
+  <div class="section-header">
+    <div>
+      <div class="section-label">Parcourir par</div>
+      <h2 class="section-title">CATÉGORIES</h2>
+    </div>
+    <a href="#" class="view-all">Voir tout →</a>
+  </div>
+  <div class="categories-grid">
+    <div class="cat-card">
+      <div class="cat-icon">⚔️</div>
+      <div class="cat-name">Action</div>
+      <div class="cat-count">2 841 jeux</div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-icon">🧙</div>
+      <div class="cat-name">RPG</div>
+      <div class="cat-count">1 634 jeux</div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-icon">🏎️</div>
+      <div class="cat-name">Course</div>
+      <div class="cat-count">738 jeux</div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-icon">🧩</div>
+      <div class="cat-name">Puzzle</div>
+      <div class="cat-count">1 092 jeux</div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-icon">🎯</div>
+      <div class="cat-name">FPS</div>
+      <div class="cat-count">987 jeux</div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-icon">🌍</div>
+      <div class="cat-name">Simulation</div>
+      <div class="cat-count">1 415 jeux</div>
+    </div>
+  </div>
+</section>
+
+<!-- NOUVEAUTÉS -->
+<section class="section" id="nouveautes" style="padding-top:0">
+  <div class="section-header">
+    <div>
+      <div class="section-label">Fraîchement sortis</div>
+      <h2 class="section-title">NOUVEAUTÉS</h2>
+    </div>
+    <a href="#" class="view-all">Voir tout →</a>
+  </div>
+  <div class="tabs">
+    <button class="tab active">Tous</button>
+    <button class="tab">Gratuits</button>
+    <button class="tab">Indépendants</button>
+    <button class="tab">En promo</button>
+  </div>
+  <div class="games-grid">
+    <!-- Card 1 -->
+    <div class="game-card">
+      <div class="game-thumb">
+        <div class="game-thumb-bg gcolor-1">
+          <div class="game-art-mini">🗡️</div>
+        </div>
+        <div class="game-overlay">
+          <button class="overlay-btn">⬇</button>
+          <button class="overlay-btn wish">♡</button>
+        </div>
+        <div class="game-platform-tags"><span class="platform-tag tag-new">NOUVEAU</span></div>
+      </div>
+      <div class="game-info">
+        <div class="game-genre">Action RPG</div>
+        <div class="game-name">Shadow Realm</div>
+        <div class="game-meta">
+          <div>
+            <div class="game-price">24,99 €</div>
+            <div class="game-downloads">↓ 12 430</div>
+          </div>
+          <div class="game-stars">★★★★☆</div>
+        </div>
+      </div>
+    </div>
+    <!-- Card 2 -->
+    <div class="game-card">
+      <div class="game-thumb">
+        <div class="game-thumb-bg gcolor-2">
+          <div class="game-art-mini">🌿</div>
+        </div>
+        <div class="game-overlay">
+          <button class="overlay-btn">⬇</button>
+          <button class="overlay-btn wish">♡</button>
+        </div>
+        <div class="game-platform-tags"><span class="platform-tag tag-free">GRATUIT</span></div>
+      </div>
+      <div class="game-info">
+        <div class="game-genre">Survie</div>
+        <div class="game-name">Verdant Wilds</div>
+        <div class="game-meta">
+          <div>
+            <div class="game-price free">Gratuit</div>
+            <div class="game-downloads">↓ 89 210</div>
+          </div>
+          <div class="game-stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+    <!-- Card 3 -->
+    <div class="game-card">
+      <div class="game-thumb">
+        <div class="game-thumb-bg gcolor-3">
+          <div class="game-art-mini">🚀</div>
+        </div>
+        <div class="game-overlay">
+          <button class="overlay-btn">⬇</button>
+          <button class="overlay-btn wish">♡</button>
+        </div>
+        <div class="game-platform-tags"><span class="platform-tag tag-sale">-40%</span></div>
+      </div>
+      <div class="game-info">
+        <div class="game-genre">FPS Sci-Fi</div>
+        <div class="game-name">Orbital Strike</div>
+        <div class="game-meta">
+          <div>
+            <div class="game-price sale">17,99 €</div>
+            <div class="game-downloads">↓ 45 870</div>
+          </div>
+          <div class="game-stars">★★★★☆</div>
+        </div>
+      </div>
+    </div>
+    <!-- Card 4 -->
+    <div class="game-card">
+      <div class="game-thumb">
+        <div class="game-thumb-bg gcolor-4">
+          <div class="game-art-mini">🧩</div>
+        </div>
+        <div class="game-overlay">
+          <button class="overlay-btn">⬇</button>
+          <button class="overlay-btn wish">♡</button>
+        </div>
+        <div class="game-platform-tags"><span class="platform-tag tag-new">NOUVEAU</span></div>
+      </div>
+      <div class="game-info">
+        <div class="game-genre">Puzzle</div>
+        <div class="game-name">Fractal Mind</div>
+        <div class="game-meta">
+          <div>
+            <div class="game-price">9,99 €</div>
+            <div class="game-downloads">↓ 7 640</div>
+          </div>
+          <div class="game-stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+    <!-- Card 5 -->
+    <div class="game-card">
+      <div class="game-thumb">
+        <div class="game-thumb-bg gcolor-5">
+          <div class="game-art-mini">🏔️</div>
+        </div>
+        <div class="game-overlay">
+          <button class="overlay-btn">⬇</button>
+          <button class="overlay-btn wish">♡</button>
+        </div>
+        <div class="game-platform-tags"><span class="platform-tag tag-free">GRATUIT</span></div>
+      </div>
+      <div class="game-info">
+        <div class="game-genre">Aventure</div>
+        <div class="game-name">Peak Runner</div>
+        <div class="game-meta">
+          <div>
+            <div class="game-price free">Gratuit</div>
+            <div class="game-downloads">↓ 31 900</div>
+          </div>
+          <div class="game-stars">★★★☆☆</div>
+        </div>
+      </div>
+    </div>
+    <!-- Card 6 -->
+    <div class="game-card">
+      <div class="game-thumb">
+        <div class="game-thumb-bg gcolor-6">
+          <div class="game-art-mini">🤖</div>
+        </div>
+        <div class="game-overlay">
+          <button class="overlay-btn">⬇</button>
+          <button class="overlay-btn wish">♡</button>
+        </div>
+        <div class="game-platform-tags"><span class="platform-tag tag-sale">-25%</span></div>
+      </div>
+      <div class="game-info">
+        <div class="game-genre">Stratégie</div>
+        <div class="game-name">Iron Protocol</div>
+        <div class="game-meta">
+          <div>
+            <div class="game-price sale">29,99 €</div>
+            <div class="game-downloads">↓ 18 250</div>
+          </div>
+          <div class="game-stars">★★★★☆</div>
+        </div>
+      </div>
+    </div>
+    <!-- Card 7 -->
+    <div class="game-card">
+      <div class="game-thumb">
+        <div class="game-thumb-bg gcolor-7">
+          <div class="game-art-mini">🌊</div>
+        </div>
+        <div class="game-overlay">
+          <button class="overlay-btn">⬇</button>
+          <button class="overlay-btn wish">♡</button>
+        </div>
+        <div class="game-platform-tags"><span class="platform-tag tag-new">NOUVEAU</span></div>
+      </div>
+      <div class="game-info">
+        <div class="game-genre">Plateforme</div>
+        <div class="game-name">Tidal Drift</div>
+        <div class="game-meta">
+          <div>
+            <div class="game-price">14,99 €</div>
+            <div class="game-downloads">↓ 5 320</div>
+          </div>
+          <div class="game-stars">★★★★☆</div>
+        </div>
+      </div>
+    </div>
+    <!-- Card 8 -->
+    <div class="game-card">
+      <div class="game-thumb">
+        <div class="game-thumb-bg gcolor-8">
+          <div class="game-art-mini">🎭</div>
+        </div>
+        <div class="game-overlay">
+          <button class="overlay-btn">⬇</button>
+          <button class="overlay-btn wish">♡</button>
+        </div>
+        <div class="game-platform-tags"><span class="platform-tag tag-free">GRATUIT</span></div>
+      </div>
+      <div class="game-info">
+        <div class="game-genre">Visual Novel</div>
+        <div class="game-name">Echo Chamber</div>
+        <div class="game-meta">
+          <div>
+            <div class="game-price free">Gratuit</div>
+            <div class="game-downloads">↓ 22 800</div>
+          </div>
+          <div class="game-stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROMO BANNER -->
+<div class="promo-banner">
+  <div>
+    <div class="promo-tag">⚡ Offre limitée</div>
+    <div class="promo-title">SOLDES<br><span>MEGA PACK</span></div>
+    <p class="promo-desc">Jusqu'à 80% de réduction sur plus de 500 jeux. Des titres indépendants aux blockbusters — ne manquez pas cette opportunité unique.</p>
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+      <a href="#" class="btn-hero btn-primary">Voir les offres</a>
+      <a href="#" class="btn-hero btn-secondary">En savoir plus</a>
+    </div>
+  </div>
+  <div class="promo-countdown">
+    <div class="countdown-label">Offre expire dans</div>
+    <div class="countdown-timer">
+      <div class="countdown-block">
+        <div class="countdown-num" id="days">02</div>
+        <div class="countdown-unit">Jours</div>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-block">
+        <div class="countdown-num" id="hours">14</div>
+        <div class="countdown-unit">Heures</div>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-block">
+        <div class="countdown-num" id="minutes">37</div>
+        <div class="countdown-unit">Min</div>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-block">
+        <div class="countdown-num" id="seconds">00</div>
+        <div class="countdown-unit">Sec</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEV SECTION -->
+<div class="dev-section" id="dev">
+  <div>
+    <div class="section-label">Pour les créateurs</div>
+    <h2 class="section-title">PUBLIEZ<br>VOS JEUX</h2>
+    <p style="color: var(--muted); line-height: 1.7; margin: 1.5rem 0; max-width: 420px; font-size: 0.95rem;">
+      Rejoignez notre réseau de développeurs indépendants. Publiez, gérez et monétisez vos créations auprès de millions de joueurs passionnés.
+    </p>
+    <a href="#" class="btn-hero btn-primary" style="display: inline-flex;">Commencer à publier</a>
+    <div class="dev-features">
+      <div class="dev-feature">
+        <div class="dev-icon">📊</div>
+        <div>
+          <div class="dev-feature-title">Tableau de bord analytique</div>
+          <div class="dev-feature-desc">Suivez vos téléchargements, avis et revenus en temps réel.</div>
+        </div>
+      </div>
+      <div class="dev-feature">
+        <div class="dev-icon">🔒</div>
+        <div>
+          <div class="dev-feature-title">Distribution sécurisée</div>
+          <div class="dev-feature-desc">CDN mondial et vérification antivirus pour chaque build.</div>
+        </div>
+      </div>
+      <div class="dev-feature">
+        <div class="dev-icon">💰</div>
+        <div>
+          <div class="dev-feature-title">Monétisation flexible</div>
+          <div class="dev-feature-desc">Gratuit, payant, freemium ou à prix libre — vous choisissez.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="dev-visual">
+    <div class="dev-stat-card highlight">
+      <div class="dev-stat-num">3 200</div>
+      <div class="dev-stat-label">Développeurs</div>
+    </div>
+    <div class="dev-stat-card">
+      <div class="dev-stat-num">98%</div>
+      <div class="dev-stat-label">Satisfaction</div>
+    </div>
+    <div class="dev-stat-card">
+      <div class="dev-stat-num">72h</div>
+      <div class="dev-stat-label">Validation</div>
+    </div>
+    <div class="dev-stat-card highlight">
+      <div class="dev-stat-num">0€</div>
+      <div class="dev-stat-label">Frais publi.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="logo">GAME<span style="color: var(--accent2)">TB</span></a>
+      <p class="footer-desc">La plateforme de téléchargement de jeux vidéo la plus rapide et sécurisée. Des milliers de jeux pour tous les joueurs.</p>
+      <div class="footer-social">
+        <a href="#" class="social-btn">𝕏</a>
+        <a href="#" class="social-btn">in</a>
+        <a href="#" class="social-btn">▶</a>
+        <a href="#" class="social-btn">📘</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Catalogue</h4>
+      <ul>
+        <li><a href="#">Nouveautés</a></li>
+        <li><a href="#">Jeux gratuits</a></li>
+        <li><a href="#">Promotions</a></li>
+        <li><a href="#">Top téléchargés</a></li>
+        <li><a href="#">Collections</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Compte</h4>
+      <ul>
+        <li><a href="#">Tableau de bord</a></li>
+        <li><a href="#">Bibliothèque</a></li>
+        <li><a href="#">Liste de souhaits</a></li>
+        <li><a href="#">Historique</a></li>
+        <li><a href="#">Paramètres</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Développeurs</h4>
+      <ul>
+        <li><a href="#">Publier un jeu</a></li>
+        <li><a href="#">Documentation</a></li>
+        <li><a href="#">Analytics</a></li>
+        <li><a href="#">Programme partenaire</a></li>
+        <li><a href="#">API</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <ul>
+        <li><a href="#">Centre d'aide</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Signaler un bug</a></li>
+        <li><a href="#">Communauté</a></li>
+        <li><a href="#">Statut serveurs</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2025 <span>Game TB</span>. Tous droits réservés.</p>
+    <div class="footer-links">
+      <a href="#">Mentions légales</a>
+      <a href="#">Confidentialité</a>
+      <a href="#">CGU</a>
+      <a href="#">Cookies</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+  document.querySelectorAll('a, button, .game-card, .cat-card').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.style.width = '20px'; cursor.style.height = '20px'; ring.style.width = '60px'; ring.style.height = '60px'; });
+    el.addEventListener('mouseleave', () => { cursor.style.width = '12px'; cursor.style.height = '12px'; ring.style.width = '36px'; ring.style.height = '36px'; });
+  });
+
+  // Countdown
+  let endTime = new Date().getTime() + (2 * 86400 + 14 * 3600 + 37 * 60) * 1000;
+  function updateCountdown() {
+    const now = new Date().getTime();
+    const diff = endTime - now;
+    if (diff <= 0) return;
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('days').textContent = String(d).padStart(2, '0');
+    document.getElementById('hours').textContent = String(h).padStart(2, '0');
+    document.getElementById('minutes').textContent = String(m).padStart(2, '0');
+    document.getElementById('seconds').textContent = String(s).padStart(2, '0');
+  }
+  setInterval(updateCountdown, 1000);
+  updateCountdown();
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // Scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.game-card, .cat-card, .dev-stat-card').forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+    el.style.transition = `opacity 0.5s ${i * 0.08}s ease, transform 0.5s ${i * 0.08}s ease`;
+    observer.observe(el);
+  });
+
+  // Download button feedback
+  document.querySelectorAll('.btn-download, .overlay-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const orig = this.textContent;
+      if (orig.includes('⬇')) {
+        this.textContent = '✓ Ajouté';
+        this.style.background = '#00f5c8';
+        this.style.color = '#080b14';
+        setTimeout(() => { this.textContent = orig; this.style.background = ''; this.style.color = ''; }, 2000);
+      }
+    });
+  });
+</script>
+</body>
+</html>
